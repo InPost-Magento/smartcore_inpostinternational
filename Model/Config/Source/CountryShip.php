@@ -28,7 +28,7 @@ class CountryShip
     {
         $countryCollection = $this->countryCollFactory->create()
             ->addFieldToFilter('country_id', ['in' => array_keys($allCountries)])
-            ->loadByStore();
+            ->load();
 
         $options = [];
         foreach (array_keys($allCountries) as $countryKey) {

@@ -37,13 +37,13 @@ define([
         },
 
         showWidget: function () {
-            $('body').addClass('_has-inpost-modal');
+            $('body').addClass('_has-inpostinternational-modal');
             this.isVisible(true);
-            setTimeout(() => this.initGeowidget(), 100);
+            setTimeout(() => this.initGeowidget(), 200);
         },
 
         closeWidget: function () {
-            $('body').removeClass('_has-inpost-modal');
+            $('body').removeClass('_has-inpostinternational-modal');
             this.isVisible(false);
             $('#inpost-map-container').empty();
         },
@@ -58,7 +58,7 @@ define([
 
             widget.setAttribute('token', config.token);
             widget.setAttribute('config', 'parcelCollect');
-            widget.setAttribute('onpoint', 'onpointselect');
+            widget.setAttribute('onpoint', 'onInternationalPointSelect');
 
             const shippingAddress = quote.shippingAddress();
             const countryId = shippingAddress.countryId;
@@ -73,7 +73,7 @@ define([
                 widget.setAttribute('sandbox', 'true');
             }
 
-            widget.addEventListener('onpointselect', (event) => {
+            widget.addEventListener('onInternationalPointSelect', (event) => {
                 this.handlePointSelection(event.detail);
             });
 
@@ -82,7 +82,7 @@ define([
 
         handlePointSelection: function(point) {
             this.selectedPoint(point);
-            this.updateInpostinternationalInputField(point.name);
+            this.updateInpostInternationalInputField(point.name);
 
             const inpostMethod = $('input[type="radio"]').filter(function() {
                 const methodCode = $(this).val();
@@ -168,7 +168,7 @@ define([
 
             if (pointToUse) {
                 this.selectedPoint(pointToUse);
-                this.updateInpostinternationalInputField(pointToUse);
+                this.updateInpostInternationalInputField(pointToUse);
 
                 if ((specificLocalStoragePoint || localStoragePoint) && !specificServerSavedPoint && !serverSavedPoint) {
                     this.savePoint(pointToUse);
@@ -176,7 +176,7 @@ define([
             }
         },
 
-        updateInpostinternationalInputField: function(pointToUse) {
+        updateInpostInternationalInputField: function(pointToUse) {
             const observer = new MutationObserver((mutations) => {
                 const field = $('[name="inpostinternational_locker_id"]');
                 if (field.length) {
