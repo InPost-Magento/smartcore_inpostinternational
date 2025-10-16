@@ -32,7 +32,7 @@ define([
                 if (isInpostGeowidgetMethod && this.geowidget) {
                     const selectedPoint = this.getSelectedPoint(method.carrier_code);
                     if (selectedPoint) {
-                        this.geowidget.updateInpostinternationalInputField(selectedPoint);
+                        this.geowidget.updateInpostInternationalInputField(selectedPoint);
 
                         // Check if the point is from localStorage but not from the server
                         const isFromLocalStorage = localStorage.getItem('inpostinternational_locker_id_' + method.carrier_code);
@@ -99,7 +99,7 @@ define([
 
                     if (!pointSelected && selectedPoint) {
                         setTimeout(() => {
-                            this.geowidget.updateInpostinternationalInputField(selectedPoint);
+                            this.geowidget.updateInpostInternationalInputField(selectedPoint);
                             $('button.continue').trigger('click');
                         }, 100);
                         return false;
