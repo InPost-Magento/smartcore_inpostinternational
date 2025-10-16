@@ -1,6 +1,10 @@
 # Changelog for Smartcore InPost International
 All notable changes to this project will be documented in this file.
 
+## 1.3.1 - 2025-11-24
+### Added
+- Smartmage/InPost compatibility
+
 ## 1.3.0 - 2025-11-20
 ### Added
 - Austria and Hungary support
