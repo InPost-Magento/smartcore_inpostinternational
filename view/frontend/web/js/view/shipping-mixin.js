@@ -9,13 +9,26 @@ define([
     return function (shipping) {
         return shipping.extend({
             defaults: {
-                shippingMethodListTemplate: 'Smartcore_InPostInternational/shipping-address/shipping-method-list'
+                shippingMethodListTemplate: 'Smartcore_InPostInternational/shipping-address/shipping-method-list',
+                selectedPoints: ko.observable({})
             },
 
             initialize: function() {
                 this._super();
+
                 registry.get('checkout.inpost-geowidget', (component) => {
                     this.geowidget = component;
+
+                    component.selectedPoint.subscribe((point) => {
+                        if (point) {
+                            const method = quote.shippingMethod();
+                            if (method) {
+                                const points = this.selectedPoints();
+                                points[method.carrier_code] = point;
+                                this.selectedPoints.valueHasMutated();
+                            }
+                        }
+                    });
                 });
 
                 quote.shippingMethod.subscribe(this.onShippingMethodChange.bind(this));
@@ -60,22 +73,37 @@ define([
             },
 
             getSelectedPoint: function(carrierCode) {
-                if (!this.geowidget) return null;
+                const cachedPoints = this.selectedPoints();
+
+                if (cachedPoints[carrierCode]) {
+                    return cachedPoints[carrierCode];
+                }
+
+                if (!this.geowidget) {
+                    return null;
+                }
 
                 if (carrierCode) {
                     try {
                         const storedSpecific = localStorage.getItem('inpostinternational_locker_id_' + carrierCode);
                         if (storedSpecific) {
-                            return JSON.parse(storedSpecific);
+                            const parsed = JSON.parse(storedSpecific);
+                            cachedPoints[carrierCode] = parsed;
+                            this.selectedPoints.valueHasMutated();
+                            return parsed;
                         }
 
                         if (window.checkoutConfig?.inpostGeowidget?.['savedPoint_' + carrierCode]) {
-                            return JSON.parse(window.checkoutConfig.inpostGeowidget['savedPoint_' + carrierCode]);
+                            const parsed = JSON.parse(window.checkoutConfig.inpostGeowidget['savedPoint_' + carrierCode]);
+                            cachedPoints[carrierCode] = parsed;
+                            this.selectedPoints.valueHasMutated();
+                            return parsed;
                         }
                     } catch (e) {
                         console.warn('Failed to load carrier-specific InPost point:', e);
                     }
                 }
+                return null;
             },
 
             validateShippingInformation: function () {
