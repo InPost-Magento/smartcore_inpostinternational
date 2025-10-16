@@ -82,7 +82,7 @@ define([
 
         handlePointSelection: function(point) {
             this.selectedPoint(point);
-            this.updateInpostInternationalInputField(point.name);
+            this.updateInpostInternationalInputField(point);
 
             const inpostMethod = $('input[type="radio"]').filter(function() {
                 const methodCode = $(this).val();
@@ -94,7 +94,9 @@ define([
                 inpostMethod.prop('checked', true).trigger('click');
             }
 
-            this.savePoint(point);
+            this.savePoint(point).done(() => {
+                quote.shippingMethod.valueHasMutated();
+            });
             this.closeWidget();
         },
 
@@ -177,15 +179,24 @@ define([
         },
 
         updateInpostInternationalInputField: function(pointToUse) {
-            const observer = new MutationObserver((mutations) => {
+            const pointName = pointToUse.name || pointToUse;
+
+            const field = $('[name="inpostinternational_locker_id"]');
+            if (field.length) {
+                field.val(pointName).trigger('change');
+                return;
+            }
+
+            const observer = new MutationObserver(() => {
                 const field = $('[name="inpostinternational_locker_id"]');
                 if (field.length) {
-                    field.val(pointToUse.name);
+                    field.val(pointName).trigger('change');
                     observer.disconnect();
                 }
             });
-
             observer.observe(document.body, { childList: true, subtree: true });
+
+            setTimeout(() => observer.disconnect(), 3000);
         },
 
         savePoint: function(point) {
