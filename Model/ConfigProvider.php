@@ -196,6 +196,28 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Get configured shipping countries for point destination type
+     *
+     * @param string $shippingMethod
+     * @return string
+     */
+    public function getGeowidgetCountries(string $shippingMethod): string
+    {
+        $countries = [];
+        foreach ($this->couriers as $courier) {
+            if ($courier->getDestinationType() !== 'point' || $courier->getCarrierCode() !== $shippingMethod) {
+                continue;
+            }
+            $specificCountries = $this->doGetCarriersConfig($courier->getCarrierCode() . '/specificcountry');
+            foreach (explode(',', $specificCountries) as $country) {
+                $countries[] = $country;
+            }
+        }
+
+        return implode(',', array_unique($countries));
+    }
+
+    /**
      * Get shipping method title
      *
      * @param string $shippingMethod
@@ -519,13 +541,16 @@ class ConfigProvider implements ConfigProviderInterface
             'geowidgetShippingMethods' => implode(',', $geowidgetShipMethods),
             'savePointUrl' => $this->urlBuilder->getUrl('inpostinternational/point/save'),
             'savedPoint' => $pointId, // Backward compatibility, use 'savedPoint_<shippingMethod>' instead
-            'geowidgetCountries' => $this->getShippingCountries(),
         ];
 
         foreach ($shippingMethods as $shippingMethod) {
             $result['logoUrl_' . $shippingMethod] = $this->logo->getLogoUrl($shippingMethod);
             $carrierSpecificPoint = $carrierPoints[$shippingMethod] ?? null;
             $result['savedPoint_' . $shippingMethod] = $carrierSpecificPoint ?: $pointId;
+            $geowidgetCountries = $this->getGeowidgetCountries($shippingMethod);
+            if ($geowidgetCountries) {
+                $result['geowidgetCountries_' . $shippingMethod] = $geowidgetCountries;
+            }
         }
 
         return ['inpostGeowidget' => $result];

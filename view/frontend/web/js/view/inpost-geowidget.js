@@ -62,7 +62,14 @@ define([
 
             const shippingAddress = quote.shippingAddress();
             const countryId = shippingAddress.countryId;
-            const countries = config.geowidgetCountries.split(',');
+            const inpostMethod = $('input[type="radio"]').filter(function() {
+                const methodCode = $(this).val();
+                const carrierCode = methodCode.split('_')[0];
+                return config.shippingMethods.includes(carrierCode);
+            }).first();
+            const geowidgetMethod = inpostMethod.val().split('_')[0];
+            const countries = config['geowidgetCountries_' + geowidgetMethod].split(',');
+
             if (countries.includes(countryId)) {
                 countries.splice(countries.indexOf(countryId), 1);
                 countries.unshift(countryId);
