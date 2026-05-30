@@ -1,6 +1,10 @@
 # Changelog for Smartcore InPost International
 All notable changes to this project will be documented in this file.
 
+## 1.5.0 - 2026-05-30
+### Added
+- PHP 8.5 support
+
 ## 1.4.0 - 2026-02-12
 ### Added
 - Extended supported version of PHP to < 8.5
