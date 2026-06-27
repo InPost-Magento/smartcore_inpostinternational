@@ -2,216 +2,406 @@ define([
     'uiComponent',
     'ko',
     'jquery',
-    'Magento_Checkout/js/model/quote'
-], function (Component, ko, $, quote) {
+    'Magento_Checkout/js/model/quote',
+    'Smartcore_InPostInternational/js/inpost-geowidget-coordinator'
+], function (Component, ko, $, quote, coordinator) {
     'use strict';
+
+    function clone(value) {
+        return value ? JSON.parse(JSON.stringify(value)) : null;
+    }
 
     return Component.extend({
         defaults: {
             template: 'Smartcore_InPostInternational/inpost-geowidget',
             selectedPoint: ko.observable(null),
-            isVisible: ko.observable(false)
+            isVisible: ko.observable(false),
+            pointsVersion: ko.observable(0)
         },
+
+        providerId: 'smartcore-international',
 
         initialize: function () {
             this._super();
-            this.bindEscapeKey();
-            this.loadSavedPoint();
-            this.loadGeowidgetResources();
-            this.createModalContainer();
+            this.providerRegistered = false;
+            this.currentClearRequestKey = null;
+            this.lastClearedContextKey = null;
+            this.registerProvider();
+            this.syncCurrentMethodSelection();
+            quote.shippingMethod.subscribe(this.syncCurrentMethodSelection.bind(this));
+            quote.shippingAddress.subscribe(this.syncCurrentMethodSelection.bind(this));
             return this;
         },
 
-        createModalContainer: function() {
-            if (!$('#inpost-modal-wrapper').length) {
-                $('body').append(
-                    '<div id="inpost-modal-wrapper" data-bind="visible: isVisible" style="display: none;">' +
-                    '<div class="modal-content">' +
-                    '<a href="#" class="action-close" data-bind="click: closeWidget"></a>' +
-                    '<div id="inpost-map-container"></div>' +
-                    '</div>' +
-                    '</div>'
-                );
-                ko.applyBindings(this, document.getElementById('inpost-modal-wrapper'));
+        registerProvider: function () {
+            if (this.providerRegistered) {
+                return;
             }
+
+            this.providerRegistered = true;
+
+            coordinator.registerProvider({
+                id: this.providerId,
+                selectionEventName: 'onpointselect',
+                getCssUrl: function (context) {
+                    return context.isSandbox
+                        ? 'https://sandbox-global-geowidget-sdk.easypack24.net/inpost-geowidget.css'
+                        : 'https://geowidget.inpost-group.com/inpost-geowidget.css';
+                },
+                getScriptUrl: function (context) {
+                    return context.isSandbox
+                        ? 'https://sandbox-global-geowidget-sdk.easypack24.net/inpost-geowidget.js'
+                        : 'https://geowidget.inpost-group.com/inpost-geowidget.js';
+                },
+                getWidgetAttributes: function (context) {
+                    var attributes = {
+                        token: context.token,
+                        config: 'parcelCollect',
+                        onpoint: 'onpointselect',
+                        country: context.countryList
+                    };
+
+                    if (context.isSandbox) {
+                        attributes.sandbox = 'true';
+                    }
+
+                    return attributes;
+                },
+                onSelected: this.handlePointSelection.bind(this)
+            });
         },
 
-        showWidget: function () {
-            $('body').addClass('_has-inpost-modal');
-            this.isVisible(true);
-            setTimeout(() => this.initGeowidget(), 100);
+        parseConfigList: function (value) {
+            if (Array.isArray(value)) {
+                return value;
+            }
+
+            if (typeof value !== 'string' || value.length === 0) {
+                return [];
+            }
+
+            return value.split(',').map(function (item) {
+                return item.trim();
+            }).filter(Boolean);
         },
 
-        closeWidget: function () {
-            $('body').removeClass('_has-inpost-modal');
-            this.isVisible(false);
-            $('#inpost-map-container').empty();
+        getShippingMethodValue: function (method) {
+            return method ? method.carrier_code + '_' + method.method_code : null;
         },
 
-        initGeowidget: function () {
-            const container = document.getElementById('inpost-map-container');
-            if (!container) return;
+        getShippingCountry: function () {
+            var shippingAddress = quote.shippingAddress();
 
-            container.innerHTML = '';
-            const config = window.checkoutConfig.inpostGeowidget;
-            const widget = document.createElement('inpost-geowidget');
+            return shippingAddress && shippingAddress.countryId ? shippingAddress.countryId : null;
+        },
 
-            widget.setAttribute('token', config.token);
-            widget.setAttribute('config', 'parcelCollect');
-            widget.setAttribute('onpoint', 'onpointselect');
+        buildContext: function (method) {
+            var widgetConfig = window.checkoutConfig.inpostGeowidget || {};
+            var context;
+            var countryId;
+            var countries;
 
-            const shippingAddress = quote.shippingAddress();
-            const countryId = shippingAddress.countryId;
-            const countries = config.geowidgetCountries.split(',');
-            if (countries.includes(countryId)) {
+            if (!method) {
+                return null;
+            }
+
+            countryId = this.getShippingCountry();
+            countries = this.parseConfigList(widgetConfig.geowidgetCountries);
+
+            if (countryId && countries.indexOf(countryId) !== -1) {
                 countries.splice(countries.indexOf(countryId), 1);
                 countries.unshift(countryId);
             }
-            widget.setAttribute('country', countries.join(','));
 
-            if (config.isSandbox) {
-                widget.setAttribute('sandbox', 'true');
+            context = {
+                providerId: this.providerId,
+                carrierCode: method.carrier_code,
+                methodCode: method.method_code,
+                methodValue: this.getShippingMethodValue(method),
+                countryId: countryId,
+                countryList: countries.join(','),
+                token: widgetConfig.token,
+                isSandbox: !!widgetConfig.isSandbox
+            };
+
+            return context;
+        },
+
+        getContextKey: function (context) {
+            return coordinator.getContextKey(this.providerId, context);
+        },
+
+        getStorageKey: function (context) {
+            return 'inpost:' + this.providerId + ':' +
+                context.carrierCode + ':' +
+                context.methodCode + ':' +
+                (context.countryId || 'unknown');
+        },
+
+        enrichPoint: function (context, point) {
+            var payload = clone(point) || {};
+
+            payload._inpostContext = {
+                providerId: this.providerId,
+                carrierCode: context.carrierCode,
+                methodCode: context.methodCode,
+                countryId: context.countryId
+            };
+
+            return payload;
+        },
+
+        extractPointCountry: function (point) {
+            if (!point) {
+                return null;
             }
 
-            widget.addEventListener('onpointselect', (event) => {
-                this.handlePointSelection(event.detail);
-            });
-
-            container.appendChild(widget);
+            return point.country ||
+                point.country_code ||
+                (point.address && (point.address.country || point.address.country_code)) ||
+                (point.address_details && (
+                    point.address_details.country ||
+                    point.address_details.country_code
+                )) ||
+                null;
         },
 
-        handlePointSelection: function(point) {
-            this.selectedPoint(point);
-            this.updateInpostinternationalInputField(point.name);
+        isPointCompatible: function (context, point) {
+            var pointContext = point && point._inpostContext;
+            var pointCountry;
 
-            const inpostMethod = $('input[type="radio"]').filter(function() {
-                const methodCode = $(this).val();
-                const carrierCode = methodCode.split('_')[0];
-                return window.checkoutConfig.inpostGeowidget.shippingMethods.includes(carrierCode);
-            }).first();
-
-            if (inpostMethod.length) {
-                inpostMethod.prop('checked', true).trigger('click');
+            if (!context || !point) {
+                return false;
             }
 
-            this.savePoint(point);
-            this.closeWidget();
-        },
-
-        loadGeowidgetResources: function() {
-            const config = window.checkoutConfig.inpostGeowidget;
-            const baseUrl = config.isSandbox
-                ? 'https://sandbox-global-geowidget-sdk.easypack24.net'
-                : 'https://geowidget.inpost-group.com';
-
-            this.loadResource('link', {
-                rel: 'stylesheet',
-                href: `${baseUrl}/inpost-geowidget.css`
-            });
-
-            this.loadResource('script', {
-                src: `${baseUrl}/inpost-geowidget.js`,
-                defer: true
-            });
-        },
-
-        loadResource: function(type, attributes) {
-            const selector = type === 'link'
-                ? `link[href="${attributes.href}"]`
-                : `script[src="${attributes.src}"]`;
-
-            if (!document.querySelector(selector)) {
-                const element = document.createElement(type);
-                Object.keys(attributes).forEach(key => element[key] = attributes[key]);
-                document.head.appendChild(element);
+            if (pointContext) {
+                return pointContext.providerId === this.providerId &&
+                    pointContext.carrierCode === context.carrierCode &&
+                    pointContext.methodCode === context.methodCode &&
+                    pointContext.countryId === context.countryId;
             }
+
+            pointCountry = this.extractPointCountry(point);
+
+            return !!pointCountry && pointCountry === context.countryId;
         },
 
-        bindEscapeKey: function() {
-            $(document).on('keyup', (e) => {
-                if (e.key === 'Escape' && this.isVisible()) {
-                    this.closeWidget();
-                }
-            });
-        },
-
-        loadSavedPoint: function() {
-            const method = quote.shippingMethod();
-            const carrierCode = method ? method.carrier_code : null;
-
-            let serverSavedPoint = null;
-            let specificServerSavedPoint = null;
+        getServerPoint: function (context) {
+            var savedPoint;
 
             try {
-                if (carrierCode && window.checkoutConfig?.inpostGeowidget?.['savedPoint_' + carrierCode]) {
-                    specificServerSavedPoint = JSON.parse(window.checkoutConfig.inpostGeowidget['savedPoint_' + carrierCode]);
+                savedPoint = window.checkoutConfig &&
+                    window.checkoutConfig.inpostGeowidget &&
+                    window.checkoutConfig.inpostGeowidget['savedPoint_' + context.carrierCode];
+
+                if (!savedPoint) {
+                    return null;
                 }
-            } catch (e) {
-                console.warn('Failed to load InPost International point from configuration:', e);
+
+                savedPoint = JSON.parse(savedPoint);
+            } catch (error) {
+                return null;
             }
 
-            let localStoragePoint = null;
-            let specificLocalStoragePoint = null;
-
-            try {
-                if (carrierCode) {
-                    const storedSpecific = localStorage.getItem('inpostinternational_locker_id_' + carrierCode);
-                    if (storedSpecific) {
-                        specificLocalStoragePoint = JSON.parse(storedSpecific);
-                    }
-                }
-            } catch (e) {
-                console.warn('Failed to load InPost International point from localStorage:', e);
-            }
-
-            const pointToUse = specificServerSavedPoint || specificLocalStoragePoint || serverSavedPoint || localStoragePoint;
-
-            if (pointToUse) {
-                this.selectedPoint(pointToUse);
-                this.updateInpostinternationalInputField(pointToUse);
-
-                if ((specificLocalStoragePoint || localStoragePoint) && !specificServerSavedPoint && !serverSavedPoint) {
-                    this.savePoint(pointToUse);
-                }
-            }
+            return this.isPointCompatible(context, savedPoint) ? savedPoint : null;
         },
 
-        updateInpostinternationalInputField: function(pointToUse) {
-            const observer = new MutationObserver((mutations) => {
-                const field = $('[name="inpostinternational_locker_id"]');
-                if (field.length) {
-                    field.val(pointToUse.name);
-                    observer.disconnect();
+        getLegacyStoragePoint: function (context) {
+            var keys = [
+                'inpostinternational_locker_id_' + context.carrierCode,
+                'inpostinternational_locker_id'
+            ];
+            var storedPoint = null;
+
+            keys.some(function (key) {
+                var value = localStorage.getItem(key);
+
+                if (!value) {
+                    return false;
                 }
+
+                try {
+                    storedPoint = JSON.parse(value);
+                } catch (error) {
+                    storedPoint = null;
+                }
+
+                return !!storedPoint;
             });
 
-            observer.observe(document.body, { childList: true, subtree: true });
+            return this.isPointCompatible(context, storedPoint) ? storedPoint : null;
         },
 
-        savePoint: function(point) {
-            let pointData = JSON.stringify(point);
-            const method = quote.shippingMethod();
-            const carrierCode = method ? method.carrier_code : null;
+        getStoredPoint: function (context) {
+            var storedPoint;
+            var rawValue;
 
-            // Always save to the general storage for backward compatibility
-            localStorage.setItem('inpostinternational_locker_id', pointData);
-
-            if (carrierCode) {
-                localStorage.setItem('inpostinternational_locker_id_' + carrierCode, pointData);
+            if (!context) {
+                return null;
             }
+
+            rawValue = localStorage.getItem(this.getStorageKey(context));
+
+            if (rawValue) {
+                try {
+                    storedPoint = JSON.parse(rawValue);
+                } catch (error) {
+                    storedPoint = null;
+                }
+            }
+
+            if (this.isPointCompatible(context, storedPoint)) {
+                return storedPoint;
+            }
+
+            return this.getServerPoint(context) || this.getLegacyStoragePoint(context);
+        },
+
+        bumpPointsVersion: function () {
+            this.pointsVersion(this.pointsVersion() + 1);
+        },
+
+        getSelectedPoint: function (method) {
+            this.pointsVersion();
+            return this.getStoredPoint(this.buildContext(method));
+        },
+
+        findMethodRow: function (context) {
+            return $('input[type="radio"][value="' + context.methodValue + '"]').closest('tr');
+        },
+
+        findHiddenField: function (context) {
+            var row = this.findMethodRow(context);
+            var field = row.find('input[name="inpostinternational_locker_id"]').first();
+
+            if (field.length) {
+                return field;
+            }
+
+            return $('input[name="inpostinternational_locker_id"]').first();
+        },
+
+        updateInpostinternationalInputField: function (point, context) {
+            var field = this.findHiddenField(context);
+
+            if (field.length) {
+                field.val(point ? point.name : '');
+            }
+        },
+
+        selectShippingMethod: function (context) {
+            var input = $('input[type="radio"][value="' + context.methodValue + '"]').first();
+
+            if (input.length && !input.is(':checked')) {
+                input.prop('checked', true).trigger('click');
+            }
+        },
+
+        savePoint: function (point, context) {
+            var payload = point ? this.enrichPoint(context, point) : null;
+            var pointData = payload ? JSON.stringify(payload) : '';
+
+            if (payload) {
+                this.lastClearedContextKey = null;
+                localStorage.setItem(this.getStorageKey(context), pointData);
+                localStorage.setItem('inpostinternational_locker_id', pointData);
+                localStorage.setItem('inpostinternational_locker_id_' + context.carrierCode, pointData);
+            }
+
+            this.bumpPointsVersion();
 
             return $.ajax({
                 url: window.checkoutConfig.inpostGeowidget.savePointUrl,
                 type: 'POST',
                 data: {
                     point_data: pointData,
-                    point_id: point.name,
-                    carrier_code: carrierCode
+                    point_id: payload ? payload.name : '',
+                    carrier_code: context.carrierCode,
+                    clear: payload ? 0 : 1
                 },
                 dataType: 'json'
-            }).fail(function(jqXHR, textStatus, errorThrown) {
-                console.error('Failed to sync point with server:', textStatus, errorThrown);
             });
+        },
+
+        clearPoint: function (context) {
+            var requestKey;
+
+            if (!context) {
+                return $.Deferred().resolve().promise();
+            }
+
+            localStorage.removeItem(this.getStorageKey(context));
+            localStorage.removeItem('inpostinternational_locker_id');
+            localStorage.removeItem('inpostinternational_locker_id_' + context.carrierCode);
+            this.updateInpostinternationalInputField(null, context);
+            this.bumpPointsVersion();
+
+            requestKey = this.getContextKey(context);
+
+            if (this.currentClearRequestKey === requestKey || this.lastClearedContextKey === requestKey) {
+                return $.Deferred().resolve().promise();
+            }
+
+            this.currentClearRequestKey = requestKey;
+            this.lastClearedContextKey = requestKey;
+
+            return this.savePoint(null, context).always(function () {
+                this.currentClearRequestKey = null;
+            }.bind(this));
+        },
+
+        handlePointSelection: function (point, context) {
+            var payload = this.enrichPoint(context, point);
+
+            this.selectedPoint(payload);
+            this.updateInpostinternationalInputField(payload, context);
+            this.savePoint(payload, context);
+        },
+
+        syncCurrentMethodSelection: function () {
+            var method = quote.shippingMethod();
+            var config = window.checkoutConfig.inpostGeowidget || {};
+            var geowidgetMethods = this.parseConfigList(config.geowidgetShippingMethods);
+            var context;
+            var selectedPoint;
+
+            if (!method || geowidgetMethods.indexOf(method.carrier_code) === -1) {
+                return;
+            }
+
+            context = this.buildContext(method);
+
+            if (!context) {
+                return;
+            }
+
+            coordinator.syncContext(this.providerId, context);
+            selectedPoint = this.getStoredPoint(context);
+
+            if (selectedPoint) {
+                this.selectedPoint(selectedPoint);
+                this.updateInpostinternationalInputField(selectedPoint, context);
+                this.bumpPointsVersion();
+
+                if (!window.checkoutConfig.inpostGeowidget['savedPoint_' + context.carrierCode]) {
+                    this.savePoint(selectedPoint, context);
+                }
+            } else {
+                this.selectedPoint(null);
+                this.clearPoint(context);
+            }
+        },
+
+        showWidget: function (method) {
+            var context = this.buildContext(method || quote.shippingMethod());
+
+            if (!context) {
+                return;
+            }
+
+            this.selectShippingMethod(context);
+            coordinator.syncContext(this.providerId, context);
+            coordinator.open(this.providerId, context);
         }
     });
 });

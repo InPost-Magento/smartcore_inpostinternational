@@ -43,7 +43,8 @@ class Save extends Action implements HttpPostActionInterface
 
         try {
             $pointId = $this->getRequest()->getParam('point_id');
-            if (!$pointId) {
+            $clear = (bool) $this->getRequest()->getParam('clear');
+            if (!$pointId && !$clear) {
                 throw new InvalidArgumentException('Point ID is required');
             }
 
@@ -52,7 +53,12 @@ class Save extends Action implements HttpPostActionInterface
                 throw new RuntimeException('Active quote not found');
             }
 
-            $quote->setInpostinternationalLockerId($pointId);
+            if ($clear) {
+                $quote->setInpostinternationalLockerId(null);
+                $quote->setInpostinternationalLockerData(null);
+            } else {
+                $quote->setInpostinternationalLockerId($pointId);
+            }
 
             $pointData = $this->getRequest()->getParam('point_data');
             $carrierCode = $this->getRequest()->getParam('carrier_code');
@@ -72,6 +78,19 @@ class Save extends Action implements HttpPostActionInterface
                     $carrierSpecificData[$carrierCode] = $pointData;
                     $quote->setData('inpostinternational_carrier_points', json_encode($carrierSpecificData));
                 }
+            } elseif ($clear && $carrierCode) {
+                $carrierSpecificData = [];
+                $existingData = $quote->getData('inpostinternational_carrier_points');
+
+                if ($existingData) {
+                    $carrierSpecificData = json_decode($existingData, true) ?: [];
+                }
+
+                unset($carrierSpecificData[$carrierCode]);
+                $quote->setData(
+                    'inpostinternational_carrier_points',
+                    $carrierSpecificData ? json_encode($carrierSpecificData) : null
+                );
             }
 
             $this->quoteRepository->save($quote);
