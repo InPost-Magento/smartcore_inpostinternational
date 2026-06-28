@@ -34,7 +34,15 @@
             <span data-bind="text: method.carrier_title"></span>
         </div>
         <!-- ko if: $parent.getTemplateForMethod(method) === 'Smartcore_InPostInternational/shipping-method-item' -->
-        <!-- ko with: $parent.getSelectedPoint(method.carrier_code) -->
+        <button type="button" class="action primary" data-bind="click: function() { $parent.showInpostWidget(method); }">
+            <!-- ko ifnot: $parent.getSelectedPoint(method) -->
+            <span data-bind="i18n: 'Select pickup point'"></span>
+            <!-- /ko -->
+            <!-- ko if: $parent.getSelectedPoint(method) -->
+            <span data-bind="i18n: 'Change pickup point'"></span>
+            <!-- /ko -->
+        </button>
+        <!-- ko with: $parent.getSelectedPoint(method) -->
         <div class="selected-point-details">
             <div class="point-name">
                 <strong data-bind="i18n: 'Pickup point:'"></strong>
@@ -52,14 +60,6 @@
             <!-- /ko -->
         </div>
         <!-- /ko -->
-        <button type="button" class="action primary" data-bind="click: function() { $parent.showInpostWidget(); }">
-            <!-- ko ifnot: $parent.getSelectedPoint(method.carrier_code) -->
-            <span data-bind="i18n: 'Select pickup point'"></span>
-            <!-- /ko -->
-            <!-- ko if: $parent.getSelectedPoint(method.carrier_code) -->
-            <span data-bind="i18n: 'Change pickup point'"></span>
-            <!-- /ko -->
-        </button>
         <!-- /ko -->
     </td>
 </tr>
