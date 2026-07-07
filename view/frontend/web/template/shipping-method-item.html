@@ -34,15 +34,15 @@
             <span data-bind="text: method.carrier_title"></span>
         </div>
         <!-- ko if: $parent.getTemplateForMethod(method) === 'Smartcore_InPostInternational/shipping-method-item' -->
-        <!-- ko with: $parent.getSelectedPoint(method.carrier_code) -->
+        <!-- ko with: $parent.getSelectedPoint(method) -->
         <div class="selected-point-details">
             <div class="point-name">
                 <strong data-bind="i18n: 'Pickup point:'"></strong>
                 <span data-bind="text: name"></span>
             </div>
-            <div class="point-address">
-                <div data-bind="text: address.line1"></div>
-                <div data-bind="text: address.line2"></div>
+            <div class="point-address" data-bind="if: address || address_details">
+                <div data-bind="text: address && address.line1 ? address.line1 : (address_details && address_details.line1 ? address_details.line1 : '')"></div>
+                <div data-bind="text: address && address.line2 ? address.line2 : (address_details && address_details.line2 ? address_details.line2 : '')"></div>
             </div>
             <!-- ko if: opening_hours -->
             <div class="point-hours">
@@ -52,11 +52,11 @@
             <!-- /ko -->
         </div>
         <!-- /ko -->
-        <button type="button" class="action primary" data-bind="click: function() { $parent.showInpostWidget(); }">
-            <!-- ko ifnot: $parent.getSelectedPoint(method.carrier_code) -->
+        <button type="button" class="action primary" data-bind="click: function() { $parent.showInpostWidget(method); }">
+            <!-- ko ifnot: $parent.getSelectedPoint(method) -->
             <span data-bind="i18n: 'Select pickup point'"></span>
             <!-- /ko -->
-            <!-- ko if: $parent.getSelectedPoint(method.carrier_code) -->
+            <!-- ko if: $parent.getSelectedPoint(method) -->
             <span data-bind="i18n: 'Change pickup point'"></span>
             <!-- /ko -->
         </button>

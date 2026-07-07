@@ -2,7 +2,7 @@
     "name": "smartcore/inpostinternational",
     "description": "InPost International API official module",
     "type": "magento2-module",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "license": [
         "proprietary"
     ],

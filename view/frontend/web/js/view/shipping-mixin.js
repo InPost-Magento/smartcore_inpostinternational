@@ -12,113 +12,121 @@ define([
                 shippingMethodListTemplate: 'Smartcore_InPostInternational/shipping-address/shipping-method-list'
             },
 
-            initialize: function() {
+            initialize: function () {
                 this._super();
-                registry.get('checkout.inpost-geowidget', (component) => {
+                registry.get('checkout.inpost-geowidget', function (component) {
                     this.geowidget = component;
-                });
+                }.bind(this));
 
                 quote.shippingMethod.subscribe(this.onShippingMethodChange.bind(this));
 
                 return this;
             },
 
-            onShippingMethodChange: function(method) {
-                if (!method) return;
+            getGeowidgetMethods: function () {
+                var value = window.checkoutConfig.inpostGeowidget &&
+                    window.checkoutConfig.inpostGeowidget.geowidgetShippingMethods;
 
-                const inpostGeowidgetMethods = window.checkoutConfig.inpostGeowidget?.geowidgetShippingMethods || [];
-                const isInpostGeowidgetMethod = inpostGeowidgetMethods.includes(method.carrier_code);
+                if (Array.isArray(value)) {
+                    return value;
+                }
 
-                if (isInpostGeowidgetMethod && this.geowidget) {
-                    const selectedPoint = this.getSelectedPoint(method.carrier_code);
-                    if (selectedPoint) {
-                        this.geowidget.updateInpostinternationalInputField(selectedPoint);
+                return typeof value === 'string' && value.length
+                    ? value.split(',').map(function (item) { return item.trim(); }).filter(Boolean)
+                    : [];
+            },
 
-                        // Check if the point is from localStorage but not from the server
-                        const isFromLocalStorage = localStorage.getItem('inpostinternational_locker_id_' + method.carrier_code);
-                        const isFromServer = window.checkoutConfig?.inpostGeowidget?.['savedPoint_' + method.carrier_code];
+            getShippingMethods: function () {
+                var value = window.checkoutConfig.inpostGeowidget &&
+                    window.checkoutConfig.inpostGeowidget.shippingMethods;
 
-                        if (isFromLocalStorage && !isFromServer) {
-                            // Save the point to the backend to ensure it's included in the quote and order
-                            this.geowidget.savePoint(selectedPoint);
-                        }
-                    }
+                if (Array.isArray(value)) {
+                    return value;
+                }
+
+                return typeof value === 'string' && value.length
+                    ? value.split(',').map(function (item) { return item.trim(); }).filter(Boolean)
+                    : [];
+            },
+
+            onShippingMethodChange: function (method) {
+                var selectedPoint;
+
+                if (!method || !this.geowidget) {
+                    return;
+                }
+
+                if (this.getGeowidgetMethods().indexOf(method.carrier_code) === -1) {
+                    return;
+                }
+
+                selectedPoint = this.geowidget.getSelectedPoint(method);
+
+                if (selectedPoint) {
+                    this.geowidget.updateInpostinternationalInputField(
+                        selectedPoint,
+                        this.geowidget.buildContext(method)
+                    );
+                } else {
+                    this.geowidget.syncCurrentMethodSelection();
                 }
             },
 
-            getTemplateForMethod: function(method) {
-                const inpostMethods = window.checkoutConfig.inpostGeowidget?.shippingMethods || [];
-                const geowidgetInpostMethods = window.checkoutConfig.inpostGeowidget?.geowidgetShippingMethods || [];
-
-                if(geowidgetInpostMethods.includes(method.carrier_code)) {
-                    return 'Smartcore_InPostInternational/shipping-method-item'
+            getTemplateForMethod: function (method) {
+                if (this.getGeowidgetMethods().indexOf(method.carrier_code) !== -1) {
+                    return 'Smartcore_InPostInternational/shipping-method-item';
                 }
 
-                if(inpostMethods.includes(method.carrier_code)) {
-                    return 'Smartcore_InPostInternational/shipping-method-item-no-geowidget'
+                if (this.getShippingMethods().indexOf(method.carrier_code) !== -1) {
+                    return 'Smartcore_InPostInternational/shipping-method-item-no-geowidget';
                 }
 
                 return 'Magento_Checkout/shipping-address/shipping-method-item';
             },
 
-            showInpostWidget: function() {
+            showInpostWidget: function (method) {
                 if (this.geowidget) {
-                    this.geowidget.showWidget();
+                    this.geowidget.showWidget(method);
                 }
             },
 
-            getSelectedPoint: function(carrierCode) {
-                if (!this.geowidget) return null;
-
-                if (carrierCode) {
-                    try {
-                        const storedSpecific = localStorage.getItem('inpostinternational_locker_id_' + carrierCode);
-                        if (storedSpecific) {
-                            return JSON.parse(storedSpecific);
-                        }
-
-                        if (window.checkoutConfig?.inpostGeowidget?.['savedPoint_' + carrierCode]) {
-                            return JSON.parse(window.checkoutConfig.inpostGeowidget['savedPoint_' + carrierCode]);
-                        }
-                    } catch (e) {
-                        console.warn('Failed to load carrier-specific InPost point:', e);
-                    }
-                }
+            getSelectedPoint: function (method) {
+                return this.geowidget ? this.geowidget.getSelectedPoint(method) : null;
             },
 
             validateShippingInformation: function () {
-                const originalResult = this._super();
-                if (!originalResult) return false;
+                var originalResult = this._super();
+                var method = quote.shippingMethod();
+                var selectedPoint;
+                var context;
+                var pointSelected;
 
-                const method = quote.shippingMethod();
-                const inpostGeowidgetMethods = window.checkoutConfig.inpostGeowidget?.geowidgetShippingMethods || [];
-
-                if (method && inpostGeowidgetMethods.includes(method.carrier_code)) {
-                    let pointSelected = $('[name="inpostinternational_locker_id"]').val();
-                    const selectedPoint = this.getSelectedPoint(method.carrier_code);
-
-                    if (!pointSelected && selectedPoint) {
-                        setTimeout(() => {
-                            this.geowidget.updateInpostinternationalInputField(selectedPoint);
-                            $('button.continue').trigger('click');
-                        }, 100);
-                        return false;
-                    }
-
-                    if (!pointSelected) {
-                        this.errorValidationMessage('Please select pickup point');
-                        return false;
-                    }
-
-                    // Check if the point is from localStorage but not from the server
-                    const isFromLocalStorage = localStorage.getItem('inpostinternational_locker_id_' + method.carrier_code);
-                    const isFromServer = window.checkoutConfig?.inpostGeowidget?.['savedPoint_' + method.carrier_code];
-
-                    if (isFromLocalStorage && !isFromServer && selectedPoint && this.geowidget) {
-                        // Save the point to the backend to ensure it's included in the quote and order
-                        this.geowidget.savePoint(selectedPoint);
-                    }
+                if (!originalResult) {
+                    return false;
                 }
+
+                if (!method || this.getGeowidgetMethods().indexOf(method.carrier_code) === -1 || !this.geowidget) {
+                    return true;
+                }
+
+                context = this.geowidget.buildContext(method);
+                pointSelected = this.geowidget.findHiddenField(context).val();
+                selectedPoint = this.geowidget.getSelectedPoint(method);
+
+                if (!pointSelected && selectedPoint) {
+                    this.geowidget.updateInpostinternationalInputField(selectedPoint, context);
+                    pointSelected = this.geowidget.findHiddenField(context).val();
+                }
+
+                if (!pointSelected) {
+                    this.errorValidationMessage('Please select pickup point');
+                    return false;
+                }
+
+                if (selectedPoint && !window.checkoutConfig.inpostGeowidget['savedPoint_' + method.carrier_code]) {
+                    this.geowidget.savePoint(selectedPoint, context);
+                }
+
                 return true;
             }
         });
