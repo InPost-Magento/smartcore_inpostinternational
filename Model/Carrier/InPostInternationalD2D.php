@@ -27,7 +27,7 @@ class InPostInternationalD2D extends AbstractInternationalCourier
     /**
      * @var array<string>
      */
-    protected array $countryAllowed = ['AT', 'HU'];
+    protected array $countryAllowed = ['AT', 'HU', 'CZ', 'SK'];
 
     /**
      * @var string|null

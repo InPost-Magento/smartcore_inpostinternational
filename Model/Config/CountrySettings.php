@@ -132,12 +132,36 @@ class CountrySettings
             'canShipFrom' => false,
             'canInsurance' => false
         ],
+        'CZ' => [
+            'languageCode' => 'cs_CZ',
+            'phonePrefix' => '+420',
+            'currency' => 'CZK',
+            'canInPostShipPointToPoint' => true,
+            'canInPostShipAddressToPoint' => true,
+            'canInPostShipPointToAddress' => true,
+            'canInPostShipAddressToAddress' => true,
+            'canMondialRelayShipTo' => false,
+            'canShipFrom' => false,
+            'canInsurance' => true
+        ],
         'HU' => [
             'languageCode' => 'hu_HU',
             'phonePrefix' => '+36',
             'currency' => 'HUF',
             'canInPostShipPointToPoint' => false,
             'canInPostShipAddressToPoint' => false,
+            'canInPostShipPointToAddress' => true,
+            'canInPostShipAddressToAddress' => true,
+            'canMondialRelayShipTo' => false,
+            'canShipFrom' => false,
+            'canInsurance' => true
+        ],
+        'SK' => [
+            'languageCode' => 'sk_SK',
+            'phonePrefix' => '+421',
+            'currency' => 'EUR',
+            'canInPostShipPointToPoint' => true,
+            'canInPostShipAddressToPoint' => true,
             'canInPostShipPointToAddress' => true,
             'canInPostShipAddressToAddress' => true,
             'canMondialRelayShipTo' => false,
