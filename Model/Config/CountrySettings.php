@@ -142,7 +142,7 @@ class CountrySettings
             'canInPostShipAddressToAddress' => true,
             'canMondialRelayShipTo' => false,
             'canShipFrom' => false,
-            'canInsurance' => true
+            'canInsurance' => false
         ],
         'HU' => [
             'languageCode' => 'hu_HU',
@@ -166,7 +166,7 @@ class CountrySettings
             'canInPostShipAddressToAddress' => true,
             'canMondialRelayShipTo' => false,
             'canShipFrom' => false,
-            'canInsurance' => true
+            'canInsurance' => false
         ],
     ];
 
