@@ -26,7 +26,7 @@
                 <weight_out_of_range>use_price</weight_out_of_range>
                 <position>1</position>
                 <sallowspecific>1</sallowspecific>
-                <specificcountry>AT,ES,IT,PT</specificcountry>
+                <specificcountry>AT,CZ,ES,IT,PT,SK</specificcountry>
                 <default_logo>Smartcore_InPostInternational::images/inpostinternational_logo.png</default_logo>
             </inpostinternationalcourier>
             <inpostinternationald2d>
@@ -37,7 +37,7 @@
                 <weight_out_of_range>use_price</weight_out_of_range>
                 <position>1</position>
                 <sallowspecific>1</sallowspecific>
-                <specificcountry>AT,HU</specificcountry>
+                <specificcountry>AT,CZ,HU,SK</specificcountry>
                 <default_logo>Smartcore_InPostInternational::images/inpostinternational_logo.png</default_logo>
             </inpostinternationald2d>
             <mondialrelaycourier>
