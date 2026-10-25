@@ -10,6 +10,7 @@ use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Order\AbstractOrder;
 use Magento\Sales\Helper\Admin;
 use Smartcore\InPostInternational\Model\Config\Source\ShippingMethods;
+use Smartcore\InPostInternational\Model\ConfigProvider;
 use Smartcore\InPostInternational\Model\InPostShipment;
 use Smartcore\InPostInternational\Model\InPostShipmentRepository;
 
@@ -24,6 +25,7 @@ class InPostInternationalOrderView extends AbstractOrder
      * @param Admin $adminHelper
      * @param ShippingMethods $shippingMethods
      * @param InPostShipmentRepository $shipmentRepository
+     * @param ConfigProvider $configProvider
      * @param array $data
      */
     public function __construct(
@@ -32,6 +34,7 @@ class InPostInternationalOrderView extends AbstractOrder
         Admin                                     $adminHelper,
         private readonly ShippingMethods          $shippingMethods,
         private readonly InPostShipmentRepository $shipmentRepository,
+        private readonly ConfigProvider           $configProvider,
         array                                     $data = [],
     ) {
         parent::__construct($context, $registry, $adminHelper, $data);
@@ -84,7 +87,7 @@ class InPostInternationalOrderView extends AbstractOrder
     public function getShippingTrackingUrl(InPostShipment $shipment): string
     {
         $tracking = $shipment->getTrackingNumber();
-        return 'https://inpost.pl/sledzenie-przesylek?number=' . $tracking;
+        return $this->configProvider->getInPostTrackingLink() . $tracking;
     }
 
     /**

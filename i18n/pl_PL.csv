@@ -221,6 +221,8 @@
 "Production geowidget token","Token geowidget produkcyjny"
 "Sandbox geowidget token","Token geowidget testowy"
 "Weight attribute code","Kod cechy produktu z wagą"
+"Tracking link","Link do śledzenia przesyłki"
+"The tracking number is appended to the end of this URL.","Numer przesyłki zostanie dodany na końcu tego adresu URL."
 "Automatically create InPost shipment after order placement","Automatycznie twórz przesyłkę InPost po złożeniu zamówienia"
 "Automatically create an order shipment after creating an InPost shipment","Automatycznie twórz wysyłkę zamówienia po utworzeniu przesyłki InPost"
 "After creating an InPost shipment change order status","Po utworzeniu przesyłki InPost zmień status zamówienia"

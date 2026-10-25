@@ -227,6 +227,8 @@
 "Production geowidget token","Production geowidget token"
 "Sandbox geowidget token","Sandbox geowidget token"
 "Weight attribute code","Weight attribute code"
+"Tracking link","Tracking link"
+"The tracking number is appended to the end of this URL.","The tracking number is appended to the end of this URL."
 "Automatically create InPost shipment after order placement","Automatically create InPost shipment after order placement"
 "Automatically create an order shipment after creating an InPost shipment","Automatically create an order shipment after creating an InPost shipment"
 "After creating an InPost shipment change order status","After creating an InPost shipment change order status"
