@@ -319,6 +319,16 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Is backend locker validation against the InPost Points API enabled
+     *
+     * @return bool
+     */
+    public function isEnabledBackendApiValidation(): bool
+    {
+        return (bool) $this->doGetShippingConfig('backend_locker_api_validation');
+    }
+
+    /**
      * Get leeway
      *
      * @return int

@@ -351,6 +351,14 @@
                     <label>Enable backend locker validation</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="backend_locker_api_validation" translate="label,comment" type="select" sortOrder="145" showInDefault="1" showInWebsite="1" canRestore="1">
+                    <label>Validate locker with InPost Points API</label>
+                    <comment>Checks the selected point exists before the order is placed. If InPost can't be reached the order is still placed.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="backend_locker_validation">1</field>
+                    </depends>
+                </field>
                 <field id="leeway" translate="label" type="text" sortOrder="146" showInDefault="1" showInWebsite="1" canRestore="1">
                     <label>Tolerance in seconds for clock differences between systems during validation</label>
                     <comment>Use if You can see errors like "Cannot handle token with iat prior to (...)"</comment>

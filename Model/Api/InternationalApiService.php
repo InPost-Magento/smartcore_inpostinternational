@@ -149,6 +149,24 @@ class InternationalApiService
     }
 
     /**
+     * Get pickup point using InPost Points API
+     *
+     * @param string $countryCode
+     * @param string $pointName
+     * @return array
+     * @throws ApiException
+     * @throws LocalizedException
+     * @throws TokenSaveException
+     */
+    public function getPoint(string $countryCode, string $pointName): array
+    {
+        return $this->sendRequest(
+            'GET',
+            sprintf('location/v1/points/%s_%s', rawurlencode($countryCode), rawurlencode($pointName))
+        );
+    }
+
+    /**
      * Create one-time pickup using InPost API
      *
      * @param OneTimePickupDto $oneTimePickupDto
