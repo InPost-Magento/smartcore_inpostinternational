@@ -359,6 +359,11 @@
                         <field id="backend_locker_validation">1</field>
                     </depends>
                 </field>
+                <field id="use_point_as_shipping_address" translate="label,comment" type="select" sortOrder="145" showInDefault="1" showInWebsite="1" canRestore="1">
+                    <label>Use pickup point as order shipping address</label>
+                    <comment>Replaces the order shipping address with the pickup point, keeping the customer's name and contact details. Useful when an ERP or warehouse system only reads the shipping address. The original address is kept on the order.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="leeway" translate="label" type="text" sortOrder="146" showInDefault="1" showInWebsite="1" canRestore="1">
                     <label>Tolerance in seconds for clock differences between systems during validation</label>
                     <comment>Use if You can see errors like "Cannot handle token with iat prior to (...)"</comment>

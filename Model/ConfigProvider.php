@@ -329,6 +329,16 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Should the order shipping address be replaced with the selected pickup point
+     *
+     * @return bool
+     */
+    public function isPointAsShippingAddressEnabled(): bool
+    {
+        return (bool) $this->doGetShippingConfig('use_point_as_shipping_address');
+    }
+
+    /**
      * Get leeway
      *
      * @return int

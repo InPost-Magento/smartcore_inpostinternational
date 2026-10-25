@@ -10,5 +10,6 @@
     <event name="sales_model_service_quote_submit_before">
         <observer name="smartcore_inpost_transfer_point" instance="Smartcore\InPostInternational\Observer\TransferInpostPointToOrder"/>
         <observer name="smartcore_inpostinternational_validate_pickup_point" instance="Smartcore\InPostInternational\Observer\ValidateInPostPickupPoint"/>
+        <observer name="smartcore_inpostinternational_use_pickup_point_as_shipping_address" instance="Smartcore\InPostInternational\Observer\UsePickupPointAsShippingAddress"/>
     </event>
 </config>

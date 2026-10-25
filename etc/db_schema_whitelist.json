@@ -109,7 +109,8 @@
     "sales_order": {
         "column": {
             "inpostinternational_locker_id": true,
-            "inpostinternational_locker_data": true
+            "inpostinternational_locker_data": true,
+            "inpostinternational_original_shipping_address": true
         }
     },
     "inpostinternational_pickup_address": {

@@ -168,5 +168,6 @@
         <!-- InPost International Locker ID - could be useful for external integrations -->
         <column name="inpostinternational_locker_id" xsi:type="varchar" length="64" comment="InPost International Locker ID"/>
         <column name="inpostinternational_locker_data" xsi:type="text" nullable="true" />
+        <column name="inpostinternational_original_shipping_address" xsi:type="text" nullable="true" comment="Shipping address before it was replaced by the pickup point"/>
     </table>
 </schema>
