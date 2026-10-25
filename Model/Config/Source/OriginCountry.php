@@ -4,35 +4,32 @@ declare(strict_types=1);
 
 namespace Smartcore\InPostInternational\Model\Config\Source;
 
-use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Directory\Model\ResourceModel\Country\CollectionFactory as CountryCollectionFactory;
 use Magento\Framework\Data\OptionSourceInterface;
-use Magento\Shipping\Model\Config;
-use Smartcore\InPostInternational\Api\PickupAddressRepositoryInterface;
+use Smartcore\InPostInternational\Model\Config\CountrySettings;
 
-class OriginCountry implements OptionSourceInterface
+class OriginCountry extends CountryShip implements OptionSourceInterface
 {
     /**
-     * Shipping methods mapper
+     * OriginCountry constructor.
      *
-     * @param ScopeConfigInterface $scopeConfig
-     * @param Config $shippingConfig
-     * @param PickupAddressRepositoryInterface $pickupAddrRepository
+     * @param CountryCollectionFactory $countryCollFactory
+     * @param CountrySettings $countrySettings
      */
     public function __construct(
-        protected ScopeConfigInterface $scopeConfig,
-        protected Config $shippingConfig,
-        protected PickupAddressRepositoryInterface $pickupAddrRepository
+        protected CountryCollectionFactory $countryCollFactory,
+        protected CountrySettings          $countrySettings
     ) {
+        parent::__construct($countryCollFactory);
     }
 
     /**
-     * @inheritdoc
+     * Get countries InPost can collect from
+     *
+     * @return array
      */
     public function toOptionArray(): array
     {
-        return [[
-            'value' => 'PL',
-            'label' => __('Poland')->render(),
-        ]];
+        return $this->getOptionsFromCountrySettings($this->countrySettings->getCountryCanShipFromSettings());
     }
 }
