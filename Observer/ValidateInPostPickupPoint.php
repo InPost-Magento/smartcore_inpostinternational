@@ -39,7 +39,7 @@ class ValidateInPostPickupPoint implements ObserverInterface
         $quote = $observer->getEvent()->getQuote();
         $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
 
-        if (!$this->configProvider->isSupportedShippingMethod($shippingMethod)) {
+        if (!$this->configProvider->isPointShippingMethod($shippingMethod)) {
             return;
         }
 

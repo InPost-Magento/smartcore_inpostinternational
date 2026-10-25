@@ -396,6 +396,26 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Check if shipping method delivers to a pickup point
+     *
+     * @param string|null $shippingMethod
+     * @return bool
+     */
+    public function isPointShippingMethod(?string $shippingMethod): bool
+    {
+        if ($shippingMethod === null) {
+            return false;
+        }
+        foreach ($this->couriers as $courier) {
+            $courierMethod = $courier->getCarrierCode() . '_' . array_key_first($courier->getAllowedMethods());
+            if ($courier->getDestinationType() === 'point' && $shippingMethod === $courierMethod) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Get config
      *
      * @param string $path
