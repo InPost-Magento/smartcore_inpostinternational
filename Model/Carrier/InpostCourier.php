@@ -25,7 +25,7 @@ class InpostCourier extends AbstractInternationalCourier
     /**
      * @var array<string>
      */
-    protected array $countryAllowed = ['IT', 'ES', 'PT', 'AT', 'CZ', 'SK'];
+    protected array $countryAllowed = ['IT', 'ES', 'PT', 'AT', 'CZ', 'SK', 'GB'];
 
     /**
      * @var string|null
