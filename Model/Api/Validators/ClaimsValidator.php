@@ -40,7 +40,10 @@ class ClaimsValidator
             throw new InvalidIssuerException('Invalid issuer');
         }
 
-        if ($decoded->azp !== $this->configProvider->getClientId()) {
+        // Not every authorization server sets azp; client credentials tokens identify the client by sub
+        $authorizedParty = $decoded->azp ?? $decoded->client_id ?? $decoded->sub ?? null;
+
+        if ($authorizedParty !== $this->configProvider->getClientId()) {
             throw new InvalidAuthorizedPartyException('Invalid authorized party');
         }
 
