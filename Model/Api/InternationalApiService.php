@@ -231,7 +231,15 @@ class InternationalApiService
 
         $statusCode = $this->curl->getStatus();
         $responseBody = $this->curl->getBody();
-        $response = $this->json->unserialize($responseBody);
+
+        try {
+            $response = $this->json->unserialize($responseBody);
+        } catch (InvalidArgumentException $e) {
+            // Gateway error pages aren't JSON; keep the body so the status code is still handled below
+            $response = ['message' => trim(strip_tags($responseBody))];
+        }
+
+        $response = is_array($response) ? $response : [];
 
         $this->handleResponseStatus($statusCode, $response, $url);
 
