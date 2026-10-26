@@ -11,6 +11,8 @@ use stdClass;
 
 class JwtService
 {
+    private const DEFAULT_KEY_ALGORITHM = 'RS256';
+
     /**
      * JwtService constructor.
      *
@@ -47,6 +49,7 @@ class JwtService
      */
     public function parseKeySet(array $jwks): array
     {
-        return $this->jwk->parseKeySet($jwks);
+        // Some authorization servers' keys don't include alg; InPost signs tokens with RS256
+        return $this->jwk->parseKeySet($jwks, self::DEFAULT_KEY_ALGORITHM);
     }
 }
