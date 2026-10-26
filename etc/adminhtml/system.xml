@@ -283,10 +283,27 @@
                         <field id="mode">sandbox</field>
                     </depends>
                 </field>
+                <field id="auth_method" translate="label,comment" type="select" sortOrder="25" showInDefault="1"
+                       showInWebsite="1" canRestore="1">
+                    <label>Authentication method</label>
+                    <source_model>Smartcore\InPostInternational\Model\Config\Source\AuthMethod</source_model>
+                    <comment>Client credentials gets access tokens with the ClientID and ClientSecret, without logging in to InPost. Use it if your InPost client allows the client credentials grant.</comment>
+                </field>
+                <field id="client_credentials_scope" translate="label,comment" type="text" sortOrder="26" showInDefault="1"
+                       showInWebsite="1" canRestore="1">
+                    <label>Client credentials scopes</label>
+                    <comment>Space separated. Only request scopes granted to your InPost client, otherwise no token is issued.</comment>
+                    <depends>
+                        <field id="auth_method">client_credentials</field>
+                    </depends>
+                </field>
                 <field id="auth_request" translate="label,comment" type="button" sortOrder="30" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <frontend_model>Smartcore\InPostInternational\Block\Adminhtml\System\Config\AuthRequestButton</frontend_model>
                     <comment>ClientID and ClientSecret needs to be saved before You will Login to InPost. Authorization needs to be refreshed after mode change.</comment>
+                    <depends>
+                        <field id="auth_method">authorization_code</field>
+                    </depends>
                 </field>
                 <field id="geowidget_token_production" translate="label" type="obscure" sortOrder="40" showInDefault="1"
                        showInWebsite="1" showInStore="1">

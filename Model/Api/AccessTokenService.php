@@ -114,9 +114,16 @@ class AccessTokenService
         $params = [
             'client_id' => $this->configProvider->getClientId(),
             'client_secret' => $this->configProvider->getClientSecret(),
-            'grant_type' => 'refresh_token',
-            'refresh_token' => $this->configProvider->getRawRefreshToken()
         ];
+
+        // Client credentials gets a new token directly, there's no refresh token from logging in to InPost
+        if ($this->configProvider->isClientCredentialsAuth()) {
+            $params['grant_type'] = 'client_credentials';
+            $params['scope'] = $this->configProvider->getClientCredentialsScope();
+        } else {
+            $params['grant_type'] = 'refresh_token';
+            $params['refresh_token'] = $this->configProvider->getRawRefreshToken();
+        }
 
         $curl = $this->curlFactory->create();
         $curl->addHeader("Content-Type", "application/x-www-form-urlencoded");

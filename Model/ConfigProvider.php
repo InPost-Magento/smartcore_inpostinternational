@@ -17,6 +17,7 @@ use Magento\Framework\FlagManager;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
+use Smartcore\InPostInternational\Model\Config\Source\AuthMethod;
 use Smartcore\InPostInternational\Model\Config\Source\Mode;
 use Smartcore\InPostInternational\Service\Logo;
 
@@ -106,6 +107,26 @@ class ConfigProvider implements ConfigProviderInterface
     public function getApiBaseUrl(): string
     {
         return (string) $this->doGetShippingConfig('api_url_' . $this->getMode());
+    }
+
+    /**
+     * Is the access token obtained with the client credentials grant, rather than by logging in to InPost
+     *
+     * @return bool
+     */
+    public function isClientCredentialsAuth(): bool
+    {
+        return $this->doGetShippingConfig('auth_method') === AuthMethod::CLIENT_CREDENTIALS;
+    }
+
+    /**
+     * Get scopes requested with the client credentials grant
+     *
+     * @return string
+     */
+    public function getClientCredentialsScope(): string
+    {
+        return trim((string) $this->doGetShippingConfig('client_credentials_scope'));
     }
 
     /**
