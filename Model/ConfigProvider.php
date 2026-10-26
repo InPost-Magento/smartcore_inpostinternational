@@ -196,6 +196,33 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Get countries to show pickup points for, from active point couriers and their "ship to specific countries"
+     *
+     * @return string
+     */
+    public function getGeowidgetCountries(): string
+    {
+        $countries = [];
+        foreach ($this->couriers as $courier) {
+            if ($courier->getDestinationType() !== 'point' || !$courier->getConfigFlag('active')) {
+                continue;
+            }
+
+            $courierCountries = (array) $courier->getAllAllowedCountries();
+            if ($courier->getConfigFlag('sallowspecific')) {
+                $courierCountries = array_intersect(
+                    $courierCountries,
+                    explode(',', (string) $courier->getConfigData('specificcountry'))
+                );
+            }
+
+            array_push($countries, ...$courierCountries);
+        }
+
+        return implode(',', array_unique($countries));
+    }
+
+    /**
      * Get shipping method title
      *
      * @param string $shippingMethod
@@ -562,7 +589,7 @@ class ConfigProvider implements ConfigProviderInterface
             'geowidgetShippingMethods' => implode(',', $geowidgetShipMethods),
             'savePointUrl' => $this->urlBuilder->getUrl('inpostinternational/point/save'),
             'savedPoint' => $pointId, // Backward compatibility, use 'savedPoint_<shippingMethod>' instead
-            'geowidgetCountries' => $this->getShippingCountries(),
+            'geowidgetCountries' => $this->getGeowidgetCountries(),
         ];
 
         foreach ($shippingMethods as $shippingMethod) {
