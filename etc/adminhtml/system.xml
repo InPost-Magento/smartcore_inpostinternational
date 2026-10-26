@@ -321,6 +321,22 @@
                         <field id="mode">sandbox</field>
                     </depends>
                 </field>
+                <field id="geowidget_url_production" translate="label,comment" type="text" sortOrder="51" showInDefault="1"
+                       showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Production geowidget url</label>
+                    <comment>The geowidget script and stylesheet are loaded from this URL. Use the URL the geowidget token was issued for.</comment>
+                    <depends>
+                        <field id="mode">production</field>
+                    </depends>
+                </field>
+                <field id="geowidget_url_sandbox" translate="label,comment" type="text" sortOrder="52" showInDefault="1"
+                       showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Sandbox geowidget url</label>
+                    <comment>The geowidget script and stylesheet are loaded from this URL. Use the URL the geowidget token was issued for.</comment>
+                    <depends>
+                        <field id="mode">sandbox</field>
+                    </depends>
+                </field>
                 <field id="weight_attribute_code" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Weight attribute code</label>
                 </field>

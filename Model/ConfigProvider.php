@@ -131,6 +131,16 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Get geowidget base URL for the current mode
+     *
+     * @return string
+     */
+    public function getGeowidgetUrl(): string
+    {
+        return rtrim((string) $this->doGetShippingConfig('geowidget_url_' . $this->getMode()), '/');
+    }
+
+    /**
      * Get geowidget language from the store locale, falling back to English where the geowidget doesn't support it
      *
      * @return string
@@ -639,6 +649,7 @@ class ConfigProvider implements ConfigProviderInterface
             'savedPoint' => $pointId, // Backward compatibility, use 'savedPoint_<shippingMethod>' instead
             'geowidgetCountries' => $this->getGeowidgetCountries(),
             'language' => $this->getGeowidgetLanguage(),
+            'geowidgetUrl' => $this->getGeowidgetUrl(),
         ];
 
         foreach ($shippingMethods as $shippingMethod) {

@@ -282,3 +282,6 @@
 "Space separated. Only request scopes granted to your InPost client, otherwise no token is issued.","Oddzielone spacjami. Podaj tylko zakresy przyznane Twojemu klientowi InPost, w przeciwnym razie token nie zostanie wydany."
 "Production API url","Adres URL API (produkcja)"
 "Sandbox API url","Adres URL API (sandbox)"
+"Production geowidget url","Adres URL geowidgetu (produkcja)"
+"Sandbox geowidget url","Adres URL geowidgetu (sandbox)"
+"The geowidget script and stylesheet are loaded from this URL. Use the URL the geowidget token was issued for.","Skrypt i arkusz stylów geowidgetu są ładowane z tego adresu URL. Użyj adresu URL, dla którego wydano token geowidgetu."

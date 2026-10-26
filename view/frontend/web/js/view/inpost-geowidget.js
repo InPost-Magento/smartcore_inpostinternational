@@ -44,14 +44,10 @@ define([
                 id: this.providerId,
                 selectionEventName: 'onpointselect',
                 getCssUrl: function (context) {
-                    return context.isSandbox
-                        ? 'https://sandbox-global-geowidget-sdk.easypack24.net/inpost-geowidget.css'
-                        : 'https://geowidget.inpost-group.com/inpost-geowidget.css';
+                    return context.geowidgetUrl + '/inpost-geowidget.css';
                 },
                 getScriptUrl: function (context) {
-                    return context.isSandbox
-                        ? 'https://sandbox-global-geowidget-sdk.easypack24.net/inpost-geowidget.js'
-                        : 'https://geowidget.inpost-group.com/inpost-geowidget.js';
+                    return context.geowidgetUrl + '/inpost-geowidget.js';
                 },
                 getWidgetAttributes: function (context) {
                     var attributes = {
@@ -123,7 +119,10 @@ define([
                 countryList: countries.join(','),
                 token: widgetConfig.token,
                 isSandbox: !!widgetConfig.isSandbox,
-                language: widgetConfig.language
+                language: widgetConfig.language,
+                geowidgetUrl: widgetConfig.geowidgetUrl || (widgetConfig.isSandbox
+                    ? 'https://sandbox-global-geowidget-sdk.easypack24.net'
+                    : 'https://geowidget.inpost-group.com')
             };
 
             return context;

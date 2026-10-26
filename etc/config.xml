@@ -8,6 +8,8 @@
                 <well_known_sandbox>https://sandbox-login.inpost-group.com/realms/external/.well-known/openid-configuration</well_known_sandbox>
                 <api_url_production>https://api.inpost-group.com/</api_url_production>
                 <api_url_sandbox>https://sandbox-api.inpost-group.com/</api_url_sandbox>
+                <geowidget_url_production>https://geowidget.inpost-group.com</geowidget_url_production>
+                <geowidget_url_sandbox>https://sandbox-global-geowidget-sdk.easypack24.net</geowidget_url_sandbox>
                 <auth_method>authorization_code</auth_method>
                 <client_credentials_scope>api:shipments:write api:tracking:read api:one-time-pickups:write api:points:read</client_credentials_scope>
                 <tracking_link>https://inpost.pl/sledzenie-przesylek?number=</tracking_link>

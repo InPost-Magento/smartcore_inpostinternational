@@ -282,3 +282,6 @@
 "Space separated. Only request scopes granted to your InPost client, otherwise no token is issued.","Space separated. Only request scopes granted to your InPost client, otherwise no token is issued."
 "Production API url","Production API url"
 "Sandbox API url","Sandbox API url"
+"Production geowidget url","Production geowidget url"
+"Sandbox geowidget url","Sandbox geowidget url"
+"The geowidget script and stylesheet are loaded from this URL. Use the URL the geowidget token was issued for.","The geowidget script and stylesheet are loaded from this URL. Use the URL the geowidget token was issued for."
