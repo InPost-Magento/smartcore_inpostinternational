@@ -58,7 +58,8 @@ define([
                         token: context.token,
                         config: 'parcelCollect',
                         onpoint: 'onpointselect',
-                        country: context.countryList
+                        country: context.countryList,
+                        language: context.language
                     };
 
                     if (context.isSandbox) {
@@ -121,7 +122,8 @@ define([
                 countryId: countryId,
                 countryList: countries.join(','),
                 token: widgetConfig.token,
-                isSandbox: !!widgetConfig.isSandbox
+                isSandbox: !!widgetConfig.isSandbox,
+                language: widgetConfig.language
             };
 
             return context;

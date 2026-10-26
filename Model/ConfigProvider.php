@@ -29,6 +29,7 @@ class ConfigProvider implements ConfigProviderInterface
 {
     public const SHIPPING_CONFIG_PATH = 'shipping/inpostinternational/';
     public const CARRIERS_CONFIG_PATH = 'carriers/';
+    private const GEOWIDGET_LANGUAGES = ['pl', 'en', 'uk', 'de', 'es', 'fr', 'it', 'nl', 'pt'];
     private const ACCESS_TOKEN_EXPIRES_AT = 'access_token_expires_at';
     private const ACCESS_TOKEN = 'access_token';
     private const REFRESH_TOKEN = 'refresh_token';
@@ -127,6 +128,22 @@ class ConfigProvider implements ConfigProviderInterface
     public function getClientCredentialsScope(): string
     {
         return trim((string) $this->doGetShippingConfig('client_credentials_scope'));
+    }
+
+    /**
+     * Get geowidget language from the store locale, falling back to English where the geowidget doesn't support it
+     *
+     * @return string
+     */
+    public function getGeowidgetLanguage(): string
+    {
+        $language = strtolower(substr(
+            (string) $this->scopeConfig->getValue('general/locale/code', ScopeInterface::SCOPE_STORE),
+            0,
+            2
+        ));
+
+        return in_array($language, self::GEOWIDGET_LANGUAGES, true) ? $language : 'en';
     }
 
     /**
@@ -621,6 +638,7 @@ class ConfigProvider implements ConfigProviderInterface
             'savePointUrl' => $this->urlBuilder->getUrl('inpostinternational/point/save'),
             'savedPoint' => $pointId, // Backward compatibility, use 'savedPoint_<shippingMethod>' instead
             'geowidgetCountries' => $this->getGeowidgetCountries(),
+            'language' => $this->getGeowidgetLanguage(),
         ];
 
         foreach ($shippingMethods as $shippingMethod) {
