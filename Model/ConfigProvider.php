@@ -99,6 +99,16 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Get InPost API base URL for the current mode
+     *
+     * @return string
+     */
+    public function getApiBaseUrl(): string
+    {
+        return (string) $this->doGetShippingConfig('api_url_' . $this->getMode());
+    }
+
+    /**
      * Get geowidget token
      *
      * @return string

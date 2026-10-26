@@ -6,6 +6,8 @@
                 <mode>sandbox</mode>
                 <well_known_production>https://login.inpost-group.com/realms/external/.well-known/openid-configuration</well_known_production>
                 <well_known_sandbox>https://sandbox-login.inpost-group.com/realms/external/.well-known/openid-configuration</well_known_sandbox>
+                <api_url_production>https://api.inpost-group.com/</api_url_production>
+                <api_url_sandbox>https://sandbox-api.inpost-group.com/</api_url_sandbox>
                 <tracking_link>https://inpost.pl/sledzenie-przesylek?number=</tracking_link>
                 <weight_attribute_code>weight</weight_attribute_code>
                 <auto_insurance>1</auto_insurance>

@@ -274,3 +274,5 @@
 "Default way of sending","Default way of sending"
 "From point (Parcel Locker)","From point (Parcel Locker)"
 "From address (Courier Pickup)","From address (Courier Pickup)"
+"Production API url","Production API url"
+"Sandbox API url","Sandbox API url"

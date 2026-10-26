@@ -347,6 +347,20 @@
                         <field id="mode">sandbox</field>
                     </depends>
                 </field>
+                <field id="api_url_production" translate="label" type="text" sortOrder="141" showInDefault="1" showInWebsite="0"
+                       showInStore="0" canRestore="1">
+                    <label>Production API url</label>
+                    <depends>
+                        <field id="mode">production</field>
+                    </depends>
+                </field>
+                <field id="api_url_sandbox" translate="label" type="text" sortOrder="142" showInDefault="1" showInWebsite="0"
+                       showInStore="0" canRestore="1">
+                    <label>Sandbox API url</label>
+                    <depends>
+                        <field id="mode">sandbox</field>
+                    </depends>
+                </field>
                 <field id="backend_locker_validation" translate="label" type="select" sortOrder="145" showInDefault="1" showInWebsite="1" canRestore="1">
                     <label>Enable backend locker validation</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

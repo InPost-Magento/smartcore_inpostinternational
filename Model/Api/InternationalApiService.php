@@ -61,9 +61,10 @@ class InternationalApiService
      */
     private function setApiBaseUrl(): void
     {
-        $this->apiBaseUrl = $this->configProvider->getMode() === Mode::SANDBOX
-            ? self::API_SANDBOX_BASE_URL
-            : self::API_PROD_BASE_URL;
+        $this->apiBaseUrl = $this->configProvider->getApiBaseUrl()
+            ?: ($this->configProvider->getMode() === Mode::SANDBOX
+                ? self::API_SANDBOX_BASE_URL
+                : self::API_PROD_BASE_URL);
     }
 
     /**

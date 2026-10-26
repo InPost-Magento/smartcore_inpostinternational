@@ -274,3 +274,5 @@
 "Default way of sending","Domyślny sposób wysyłki"
 "From point (Parcel Locker)","Z punktu (Paczkomat)"
 "From address (Courier Pickup)","Z adresu (Podjazd kuriera)"
+"Production API url","Adres URL API (produkcja)"
+"Sandbox API url","Adres URL API (sandbox)"
