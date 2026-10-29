@@ -33,7 +33,8 @@ class TokenValidator
         try {
             $this->claimsValidator->validateCommonClaims($token);
 
-            if ($token->typ !== 'Bearer') {
+            // Only some authorization servers set the typ claim
+            if (isset($token->typ) && $token->typ !== 'Bearer') {
                 throw new AccessTokenValidationException('Invalid token type');
             }
         } catch (Exception $e) {

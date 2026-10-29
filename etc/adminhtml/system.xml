@@ -283,10 +283,27 @@
                         <field id="mode">sandbox</field>
                     </depends>
                 </field>
+                <field id="auth_method" translate="label,comment" type="select" sortOrder="25" showInDefault="1"
+                       showInWebsite="1" canRestore="1">
+                    <label>Authentication method</label>
+                    <source_model>Smartcore\InPostInternational\Model\Config\Source\AuthMethod</source_model>
+                    <comment>Client credentials gets access tokens with the ClientID and ClientSecret, without logging in to InPost. Use it if your InPost client allows the client credentials grant.</comment>
+                </field>
+                <field id="client_credentials_scope" translate="label,comment" type="text" sortOrder="26" showInDefault="1"
+                       showInWebsite="1" canRestore="1">
+                    <label>Client credentials scopes</label>
+                    <comment>Space separated. Only request scopes granted to your InPost client, otherwise no token is issued.</comment>
+                    <depends>
+                        <field id="auth_method">client_credentials</field>
+                    </depends>
+                </field>
                 <field id="auth_request" translate="label,comment" type="button" sortOrder="30" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <frontend_model>Smartcore\InPostInternational\Block\Adminhtml\System\Config\AuthRequestButton</frontend_model>
                     <comment>ClientID and ClientSecret needs to be saved before You will Login to InPost. Authorization needs to be refreshed after mode change.</comment>
+                    <depends>
+                        <field id="auth_method">authorization_code</field>
+                    </depends>
                 </field>
                 <field id="geowidget_token_production" translate="label" type="obscure" sortOrder="40" showInDefault="1"
                        showInWebsite="1" showInStore="1">
@@ -304,8 +321,28 @@
                         <field id="mode">sandbox</field>
                     </depends>
                 </field>
+                <field id="geowidget_url_production" translate="label,comment" type="text" sortOrder="51" showInDefault="1"
+                       showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Production geowidget url</label>
+                    <comment>The geowidget script and stylesheet are loaded from this URL. Use the URL the geowidget token was issued for.</comment>
+                    <depends>
+                        <field id="mode">production</field>
+                    </depends>
+                </field>
+                <field id="geowidget_url_sandbox" translate="label,comment" type="text" sortOrder="52" showInDefault="1"
+                       showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Sandbox geowidget url</label>
+                    <comment>The geowidget script and stylesheet are loaded from this URL. Use the URL the geowidget token was issued for.</comment>
+                    <depends>
+                        <field id="mode">sandbox</field>
+                    </depends>
+                </field>
                 <field id="weight_attribute_code" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Weight attribute code</label>
+                </field>
+                <field id="tracking_link" translate="label,comment" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Tracking link</label>
+                    <comment>The tracking number is appended to the end of this URL.</comment>
                 </field>
                 <field id="auto_inpostshipment_create" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" canRestore="1">
                     <label>Automatically create InPost shipment after order placement</label>
@@ -343,8 +380,35 @@
                         <field id="mode">sandbox</field>
                     </depends>
                 </field>
+                <field id="api_url_production" translate="label" type="text" sortOrder="141" showInDefault="1" showInWebsite="0"
+                       showInStore="0" canRestore="1">
+                    <label>Production API url</label>
+                    <depends>
+                        <field id="mode">production</field>
+                    </depends>
+                </field>
+                <field id="api_url_sandbox" translate="label" type="text" sortOrder="142" showInDefault="1" showInWebsite="0"
+                       showInStore="0" canRestore="1">
+                    <label>Sandbox API url</label>
+                    <depends>
+                        <field id="mode">sandbox</field>
+                    </depends>
+                </field>
                 <field id="backend_locker_validation" translate="label" type="select" sortOrder="145" showInDefault="1" showInWebsite="1" canRestore="1">
                     <label>Enable backend locker validation</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="backend_locker_api_validation" translate="label,comment" type="select" sortOrder="145" showInDefault="1" showInWebsite="1" canRestore="1">
+                    <label>Validate locker with InPost Points API</label>
+                    <comment>Checks the selected point exists before the order is placed. If InPost can't be reached the order is still placed.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="backend_locker_validation">1</field>
+                    </depends>
+                </field>
+                <field id="use_point_as_shipping_address" translate="label,comment" type="select" sortOrder="145" showInDefault="1" showInWebsite="1" canRestore="1">
+                    <label>Use pickup point as order shipping address</label>
+                    <comment>Replaces the order shipping address with the pickup point, keeping the customer's name and contact details. Useful when an ERP or warehouse system only reads the shipping address. The original address is kept on the order.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="leeway" translate="label" type="text" sortOrder="146" showInDefault="1" showInWebsite="1" canRestore="1">

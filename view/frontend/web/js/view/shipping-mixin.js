@@ -81,7 +81,8 @@ define([
                     return 'Smartcore_InPostInternational/shipping-method-item-no-geowidget';
                 }
 
-                return 'Magento_Checkout/shipping-address/shipping-method-item';
+                // Respect the item template set by the theme or other modules for non-InPost methods
+                return this.shippingMethodItemTemplate || 'Magento_Checkout/shipping-address/shipping-method-item';
             },
 
             showInpostWidget: function (method) {

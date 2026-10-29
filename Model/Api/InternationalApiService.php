@@ -61,9 +61,10 @@ class InternationalApiService
      */
     private function setApiBaseUrl(): void
     {
-        $this->apiBaseUrl = $this->configProvider->getMode() === Mode::SANDBOX
-            ? self::API_SANDBOX_BASE_URL
-            : self::API_PROD_BASE_URL;
+        $this->apiBaseUrl = $this->configProvider->getApiBaseUrl()
+            ?: ($this->configProvider->getMode() === Mode::SANDBOX
+                ? self::API_SANDBOX_BASE_URL
+                : self::API_PROD_BASE_URL);
     }
 
     /**
@@ -149,6 +150,24 @@ class InternationalApiService
     }
 
     /**
+     * Get pickup point using InPost Points API
+     *
+     * @param string $countryCode
+     * @param string $pointName
+     * @return array
+     * @throws ApiException
+     * @throws LocalizedException
+     * @throws TokenSaveException
+     */
+    public function getPoint(string $countryCode, string $pointName): array
+    {
+        return $this->sendRequest(
+            'GET',
+            sprintf('location/v1/points/%s_%s', rawurlencode($countryCode), rawurlencode($pointName))
+        );
+    }
+
+    /**
      * Create one-time pickup using InPost API
      *
      * @param OneTimePickupDto $oneTimePickupDto
@@ -212,7 +231,15 @@ class InternationalApiService
 
         $statusCode = $this->curl->getStatus();
         $responseBody = $this->curl->getBody();
-        $response = $this->json->unserialize($responseBody);
+
+        try {
+            $response = $this->json->unserialize($responseBody);
+        } catch (InvalidArgumentException $e) {
+            // Gateway error pages aren't JSON; keep the body so the status code is still handled below
+            $response = ['message' => trim(strip_tags($responseBody))];
+        }
+
+        $response = is_array($response) ? $response : [];
 
         $this->handleResponseStatus($statusCode, $response, $url);
 

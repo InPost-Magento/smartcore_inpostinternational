@@ -17,6 +17,7 @@ use Magento\Framework\FlagManager;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
+use Smartcore\InPostInternational\Model\Config\Source\AuthMethod;
 use Smartcore\InPostInternational\Model\Config\Source\Mode;
 use Smartcore\InPostInternational\Service\Logo;
 
@@ -28,6 +29,7 @@ class ConfigProvider implements ConfigProviderInterface
 {
     public const SHIPPING_CONFIG_PATH = 'shipping/inpostinternational/';
     public const CARRIERS_CONFIG_PATH = 'carriers/';
+    private const GEOWIDGET_LANGUAGES = ['pl', 'en', 'uk', 'de', 'es', 'fr', 'it', 'nl', 'pt'];
     private const ACCESS_TOKEN_EXPIRES_AT = 'access_token_expires_at';
     private const ACCESS_TOKEN = 'access_token';
     private const REFRESH_TOKEN = 'refresh_token';
@@ -96,6 +98,62 @@ class ConfigProvider implements ConfigProviderInterface
         return $this->encryptor->decrypt(
             $this->doGetShippingConfig('client_secret_' . $this->getMode())
         );
+    }
+
+    /**
+     * Get InPost API base URL for the current mode
+     *
+     * @return string
+     */
+    public function getApiBaseUrl(): string
+    {
+        return (string) $this->doGetShippingConfig('api_url_' . $this->getMode());
+    }
+
+    /**
+     * Is the access token obtained with the client credentials grant, rather than by logging in to InPost
+     *
+     * @return bool
+     */
+    public function isClientCredentialsAuth(): bool
+    {
+        return $this->doGetShippingConfig('auth_method') === AuthMethod::CLIENT_CREDENTIALS;
+    }
+
+    /**
+     * Get scopes requested with the client credentials grant
+     *
+     * @return string
+     */
+    public function getClientCredentialsScope(): string
+    {
+        return trim((string) $this->doGetShippingConfig('client_credentials_scope'));
+    }
+
+    /**
+     * Get geowidget base URL for the current mode
+     *
+     * @return string
+     */
+    public function getGeowidgetUrl(): string
+    {
+        return rtrim((string) $this->doGetShippingConfig('geowidget_url_' . $this->getMode()), '/');
+    }
+
+    /**
+     * Get geowidget language from the store locale, falling back to English where the geowidget doesn't support it
+     *
+     * @return string
+     */
+    public function getGeowidgetLanguage(): string
+    {
+        $language = strtolower(substr(
+            (string) $this->scopeConfig->getValue('general/locale/code', ScopeInterface::SCOPE_STORE),
+            0,
+            2
+        ));
+
+        return in_array($language, self::GEOWIDGET_LANGUAGES, true) ? $language : 'en';
     }
 
     /**
@@ -190,6 +248,33 @@ class ConfigProvider implements ConfigProviderInterface
             foreach ((array) $courier->getAllAllowedCountries() as $country) {
                 $countries[] = $country;
             }
+        }
+
+        return implode(',', array_unique($countries));
+    }
+
+    /**
+     * Get countries to show pickup points for, from active point couriers and their "ship to specific countries"
+     *
+     * @return string
+     */
+    public function getGeowidgetCountries(): string
+    {
+        $countries = [];
+        foreach ($this->couriers as $courier) {
+            if ($courier->getDestinationType() !== 'point' || !$courier->getConfigFlag('active')) {
+                continue;
+            }
+
+            $courierCountries = (array) $courier->getAllAllowedCountries();
+            if ($courier->getConfigFlag('sallowspecific')) {
+                $courierCountries = array_intersect(
+                    $courierCountries,
+                    explode(',', (string) $courier->getConfigData('specificcountry'))
+                );
+            }
+
+            array_push($countries, ...$courierCountries);
         }
 
         return implode(',', array_unique($countries));
@@ -319,6 +404,26 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     /**
+     * Is backend locker validation against the InPost Points API enabled
+     *
+     * @return bool
+     */
+    public function isEnabledBackendApiValidation(): bool
+    {
+        return (bool) $this->doGetShippingConfig('backend_locker_api_validation');
+    }
+
+    /**
+     * Should the order shipping address be replaced with the selected pickup point
+     *
+     * @return bool
+     */
+    public function isPointAsShippingAddressEnabled(): bool
+    {
+        return (bool) $this->doGetShippingConfig('use_point_as_shipping_address');
+    }
+
+    /**
      * Get leeway
      *
      * @return int
@@ -389,6 +494,26 @@ class ConfigProvider implements ConfigProviderInterface
         }
         foreach ($this->couriers as $courier) {
             if (str_contains($shippingMethod, array_key_first($courier->getAllowedMethods()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if shipping method delivers to a pickup point
+     *
+     * @param string|null $shippingMethod
+     * @return bool
+     */
+    public function isPointShippingMethod(?string $shippingMethod): bool
+    {
+        if ($shippingMethod === null) {
+            return false;
+        }
+        foreach ($this->couriers as $courier) {
+            $courierMethod = $courier->getCarrierCode() . '_' . array_key_first($courier->getAllowedMethods());
+            if ($courier->getDestinationType() === 'point' && $shippingMethod === $courierMethod) {
                 return true;
             }
         }
@@ -522,7 +647,9 @@ class ConfigProvider implements ConfigProviderInterface
             'geowidgetShippingMethods' => implode(',', $geowidgetShipMethods),
             'savePointUrl' => $this->urlBuilder->getUrl('inpostinternational/point/save'),
             'savedPoint' => $pointId, // Backward compatibility, use 'savedPoint_<shippingMethod>' instead
-            'geowidgetCountries' => $this->getShippingCountries(),
+            'geowidgetCountries' => $this->getGeowidgetCountries(),
+            'language' => $this->getGeowidgetLanguage(),
+            'geowidgetUrl' => $this->getGeowidgetUrl(),
         ];
 
         foreach ($shippingMethods as $shippingMethod) {
