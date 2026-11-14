@@ -123,7 +123,7 @@ class AccessTokenService
         $curl->post($this->wellKnownService->getTokenEndpoint(), http_build_query($params));
         $result = json_decode($curl->getBody());
 
-        if (property_exists($result, 'error')) {
+        if (is_object($result) && property_exists($result, 'error')) {
             throw new TokenSaveException(
                 sprintf(
                     'Error during access token refresh: "%s". Full response: "%s"',
@@ -133,7 +133,7 @@ class AccessTokenService
             );
         }
 
-        if ($result === null || !property_exists($result, 'access_token')) {
+        if (!is_object($result) || !property_exists($result, 'access_token')) {
             throw new TokenSaveException(
                 sprintf(
                     'Failed to refresh access token. Response is empty or does not contain access_token. "%s"',
