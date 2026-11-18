@@ -34,6 +34,7 @@ class Save extends Action
      */
     public function execute()
     {
+        $formData = [];
         try {
             $formData = $this->getRequest()->getPostValue();
             $this->otpProcessor->process($formData);
