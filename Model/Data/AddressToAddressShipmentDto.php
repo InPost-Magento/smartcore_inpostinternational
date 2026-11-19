@@ -8,6 +8,7 @@ use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
+use Smartcore\InPostInternational\Api\PickupAddressRepositoryInterface;
 use Smartcore\InPostInternational\Model\Data\Trait\DestinationAddressCreatorTrait;
 use Smartcore\InPostInternational\Model\Data\Trait\OriginAddressCreatorTrait;
 use Smartcore\InPostInternational\Model\InPostShipment as ShipmentModel;
@@ -25,6 +26,7 @@ class AddressToAddressShipmentDto extends ShipmentTypeDto implements ShipmentTyp
      * @param AbstractDtoBuilder $abstractDtoBuilder
      * @param Context $context
      * @param Registry $registry
+     * @param PickupAddressRepositoryInterface $pickupAddrRepository
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
      */
@@ -33,6 +35,7 @@ class AddressToAddressShipmentDto extends ShipmentTypeDto implements ShipmentTyp
         private readonly AbstractDtoBuilder $abstractDtoBuilder,
         Context $context,
         Registry $registry,
+        private readonly PickupAddressRepositoryInterface $pickupAddrRepository,
         ?AbstractResource $resource = null,
         ?AbstractDb $resourceCollection = null
     ) {
